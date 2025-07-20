@@ -42,9 +42,12 @@ def parse_VisDrone_annotations_file(annotations_file_path:str) -> Dict[torch.ten
       if class_id == 0 or class_id == 11:
         continue
 
+      # class_id += 1
+
       xmax = xmin + width
       ymax = ymin + height
       box = [xmin, ymin, xmax, ymax]
+      # box = [xmin, ymin, height, width]
 
       boxes.append(box)
       labels.append(class_id)
@@ -68,3 +71,31 @@ def collate_fn_simple(batch):
 
   ret = {"images": images, "targets": targets, "img_paths": img_paths}
   return ret
+
+def collate_fn_tensor_stack(batch):
+  images = []
+  targets = []
+  batch_len = []
+  img_paths = []
+
+  for image, target, img_path in batch:
+    img_paths.append(img_path)
+    n = target["boxes"].shape[0]
+    if n > 0:
+      labels = target["labels"].unsqueeze(1).float()
+      boxes = target["boxes"]
+      labeled_boxes = torch.cat([labels, boxes], dim=1)
+      targets.append(labeled_boxes)
+      batch_len.append(n)
+    else:
+      batch_len.append(0)
+
+    images.append(image)
+
+  images = torch.stack(images)
+  if targets:
+    target_tensor = torch.cat(targets, dim=0)
+  else:
+    target_tensor = torch.zeros((0, 5), dtype=torch.float32)
+
+  return images, target_tensor, batch_len, img_paths

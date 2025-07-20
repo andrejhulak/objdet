@@ -1,6 +1,7 @@
 import torch
 import sys
-from utils.visualize import visualize_predictions
+# from utils.visualize import visualize_predictions
+from utils.sparse_visualize import visualize_predictions
 from dataset.VisDroneDS.utils.VisDroneDS_utils import VisDrone_CLASS_NAMES
 
 class BaseTrainer():
@@ -19,6 +20,7 @@ class BaseTrainer():
     self.model = model
 
     # data
+
     self.train_dataloader = train_dataloader
     self.val_dataloader = val_dataloader
 
@@ -41,35 +43,52 @@ class BaseTrainer():
 
     self.accumulate_loss = self.val_dataloader.batch_size
 
-    self.lr = 0.00001 #TODO write something to determine this automatically
+    self.lr = 0.000025 #TODO write something to determine this automatically
     self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.lr)
 
     self.model.train()
 
-  def _train_model(self):
-    assert self.model.training
+  # def _train_model(self):
+  #   assert self.model.training
 
+  #   for epoch in range(1, self.epochs + 1):
+  #     self.epoch = epoch
+
+  #     for i, batch in enumerate(self.train_dataloader):
+  #       self.model.train()
+  #       # torch.cuda.empty_cache()
+  #       self.optimizer.zero_grad()
+
+  #       with torch.autocast(device_type=self.device):
+  #         batch = self.preprocess_batch(batch) 
+  #         self.loss, self.loss_items = self.process_loss(self.model(batch["images"], batch["targets"]))
+
+  #       self.scaler.scale(self.loss).backward()
+
+  #       self.scaler.step(optimizer=self.optimizer)
+  #       self.scaler.update()
+
+  #       self.print_after_batch_results()
+  #       if epoch % 100 == 0:
+  #         visualize_predictions(self.model, self.train_dataloader, VisDrone_CLASS_NAMES)
+
+  def _train_model(self):
     for epoch in range(1, self.epochs + 1):
       self.epoch = epoch
-
-      for i, batch in enumerate(self.train_dataloader):
+      for i, (images, target_tensor, batch_len, _) in enumerate(self.train_dataloader):
         self.model.train()
-        # torch.cuda.empty_cache()
         self.optimizer.zero_grad()
-
-        with torch.autocast(device_type=self.device):
-          batch = self.preprocess_batch(batch) 
-          self.loss, self.loss_items = self.process_loss(self.model(batch["images"], batch["targets"]))
-
+        images = images.to(self.device)
+        target_tensor = target_tensor.to(self.device)
+        with torch.autocast(device_type=self.device, enabled=self.amp):
+          out = self.model(images, targets={"target": target_tensor, "batch_len": batch_len})
+          self.loss, self.loss_items = self.process_loss(out)
         self.scaler.scale(self.loss).backward()
-
-        self.scaler.step(optimizer=self.optimizer)
+        self.scaler.step(self.optimizer)
         self.scaler.update()
-
         self.print_after_batch_results()
-        if epoch % 100 == 0:
-          visualize_predictions(self.model, self.train_dataloader, VisDrone_CLASS_NAMES)
-
+        if epoch % 200 == 0:
+          visualize_predictions(self.model, self.train_dataloader, VisDrone_CLASS_NAMES, self.device)
 
   def train(self):
     self._init_training()
@@ -85,6 +104,7 @@ class BaseTrainer():
     return batch
 
   def process_loss(self, loss):
+    loss["match_num"] = torch.tensor(0).to(self.device)
     total_loss = sum(loss.values())
     loss_items = torch.stack([loss[k] for k in loss.keys()]).detach().cpu()
     return total_loss, loss_items
