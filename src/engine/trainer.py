@@ -2,7 +2,7 @@ import torch
 import sys
 # from utils.visualize import visualize_predictions
 from utils.sparse_visualize import visualize_predictions
-from dataset.VisDroneDS.utils.VisDroneDS_utils import VisDrone_CLASS_NAMES
+from dataset.VisDroneDS.utils import VisDrone_CLASS_NAMES
 
 class BaseTrainer():
   '''
