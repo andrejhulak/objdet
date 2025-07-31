@@ -4,7 +4,7 @@ from albumentations.pytorch import ToTensorV2
 from engine.utils import run_inference
 import torch
 
-def infer_and_display_image(image_path, model, device, class_names, image_size=640, conf_thresh=0.5):
+def infer_and_display_image(image_path, model, device, image_size=640, conf_thresh=-0.1):
   raw_image = cv2.imread(image_path)
   image_rgb = cv2.cvtColor(raw_image, cv2.COLOR_BGR2RGB)
 
@@ -23,7 +23,7 @@ def infer_and_display_image(image_path, model, device, class_names, image_size=6
     device=device,
     inputs=tensor,
     image_size=image_size,
-    empty_class_id=11,
+    empty_class_id=0,
     scale_boxes=True
   )
 

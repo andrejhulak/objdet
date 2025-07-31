@@ -41,7 +41,7 @@ def run_inference(
     inputs,
     nms_threshold=0.3,
     image_size=640,
-    empty_class_id=1,
+    empty_class_id=0,
     out_format="xyxy",
     scale_boxes=True,
 ):
@@ -73,8 +73,12 @@ def run_inference(
         out_cl, out_bbox = model(inputs)
 
     # Get the outputs from the last decoder layer..
-    out_cl = out_cl[:, -1, :]
-    out_bbox = out_bbox[:, -1, :]
+    # out_cl = out_cl[:, -1 :]
+    # out_bbox = out_bbox[:, -1, :]
+
+    out_cl = out_cl[:, -1, :, :]
+    out_bbox = out_bbox[:, -1, :, :]
+
     out_bbox = out_bbox.sigmoid().cpu()
     out_cl_probs = out_cl.cpu()
 
@@ -98,8 +102,8 @@ def run_inference(
         keep_probs = o_cl[o_keep]
         keep_boxes = o_bbox[o_keep]
 
-        # keep_probs = o_cl
-        # keep_boxes = o_bbox
+        keep_probs = o_cl
+        keep_boxes = o_bbox
 
         # Apply NMS
         nms_boxes, nms_probs, nms_classes = class_based_nms(

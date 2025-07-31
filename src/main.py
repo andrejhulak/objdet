@@ -1,39 +1,52 @@
 import torch
 from dataset.ds import ArmaDS, collate_fn
 from torch.utils.data.dataloader import DataLoader
-from models.cond_detr import ConditionalDETR
-from engine.train import train
-from engine.infer import infer_and_display_image
+from models.dino.dino import build_dino
+from engine import test_single_image
+from tqdm import tqdm
+
+import DINO_5scale as args
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-# device = "cpu"
 BATCH_SIZE = 1
+n_epochs = 30
 
 if __name__ == "__main__":
+  model, criterion, postprocessors = build_dino(args)
+  model = model.to(device).train()
+  criterion.train()
+
   train_ds = ArmaDS(root="data/arma")
   train_dl = DataLoader(dataset=train_ds, batch_size=BATCH_SIZE, shuffle=True, collate_fn=collate_fn)
 
-  model = ConditionalDETR(
-    d_model=224,
-    n_classes=2,
-    n_tokens=400, # for now
-    n_layers=6,
-    n_heads=2,
-    n_queries=100,
-    use_frozen_bn=False
-  ).to(torch.float32).to(device)
-  
-  train(model=model,
-        train_loader=train_dl,
-        device=device,
-        epochs=100,
-        batch_size=BATCH_SIZE)
+  optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5, weight_decay=1e-4)
 
-  infer_and_display_image(model=model, image_path="data/arma/images/frame_0.jpg", device=device, class_names=["person"])
+  print("Starting training...")
+  for epoch in range(n_epochs):
+    total_loss = 0
+    for input, targets in tqdm(train_dl):
+      input = input.to(device)
+      targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
+      optimizer.zero_grad()
 
-  # x = torch.rand(2, 3, 640, 640).to(device)
-  # out = model(x)
-  # # the model returns a tuple of len() 2
-  # # the first element is of (bsize, n_layers, n_queries, n_classes)
-  # # the second element is of (bsize, n_layers, n_queries, 4)
-  # gt_boxes = torch.rand(100, 4)
+      outputs = model(input, targets)
+      loss_dict = criterion(outputs, targets)
+      weight_dict = criterion.weight_dict
+      losses = sum(loss_dict[k] * weight_dict[k] for k in loss_dict.keys() if k in weight_dict)
+      total_loss += losses.item()
+
+      losses.backward()
+      # grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 0.1)
+      # if not torch.isfinite(grad_norm):
+      #   print("Grad norm:", grad_norm)
+      #   continue
+      optimizer.step()
+
+    total_loss /= len(train_ds)
+    print(f"Epoch {epoch}: Total Loss = {total_loss:.4f}")
+
+  torch.save(model.state_dict(), "dino_arma_model_1.pth")
+  print("Model saved to dino_arma_model.pth")
+
+  # test_single_image(model, postprocessors, "data/arma/images/frame_0.jpg", device)
+  test_single_image(model, postprocessors, "data/drone_pic.jpg", device)

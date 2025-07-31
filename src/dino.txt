@@ -1,0 +1,6 @@
+model.eval() !!!!!!!!!
+x = torch.rand(2, 3, 640, 640).to(device)
+out = model(x)
+print(out.keys()) # the keys are: dict_keys(['pred_logits', 'pred_boxes', 'aux_outputs', 'interm_outputs', 'interm_outputs_for_matching_pre', 'dn_meta'])
+print(out["pred_logits"].shape) # shape torch.Size([2, 100, 2]) (b_size, n_queries, n_classes)
+print(out["pred_boxes"].shape) # shape torch.Size([2, 100, 4]) (b_size, n_queries, 4)

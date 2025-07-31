@@ -3,8 +3,7 @@ import torch.nn as nn
 from models.losses.detr_loss import compute_sample_loss
 
 def train(model, train_loader, device, epochs, batch_size):
-  optimizer = torch.optim.AdamW(params=model.parameters(), lr=0.00001)
-  torch.set_grad_enabled(True)
+  optimizer = torch.optim.AdamW(params=model.parameters(), lr=0.00001, weight_decay=0.0001)
   model.train()
   print(f"Starting training for {epochs} epochs... Using device : {device}")
 
@@ -37,7 +36,7 @@ def train(model, train_loader, device, epochs, batch_size):
           o_cl = class_preds[:, i, :, :].to(device)
 
           for o_bbox_i, t_bbox, o_cl_i, t_cl, t_mask in zip(o_bbox, tgt_bbox, o_cl, tgt_cl, tgt_mask):
-            loss_class, loss_bbox, loss_giou = compute_sample_loss(o_bbox_i, t_bbox, o_cl_i, t_cl, t_mask, empty_class_id=11, device=device)
+            loss_class, loss_bbox, loss_giou = compute_sample_loss(o_bbox_i, t_bbox, o_cl_i, t_cl, t_mask, empty_class_id=0, device=device)
             sample_loss = 1 * loss_class + 5 * loss_bbox + 2 * loss_giou
             loss += sample_loss / batch_size / num_dec_layers
             loss_class_batch += loss_class / batch_size / num_dec_layers
@@ -56,4 +55,4 @@ def train(model, train_loader, device, epochs, batch_size):
       box_losses = torch.cat((box_losses, loss_bbox_batch.detach().unsqueeze(0)))
       giou_losses = torch.cat((giou_losses, loss_giou_batch.detach().unsqueeze(0)))
 
-      print(f"Total loss: {loss.item():.4f}; cls_loss: {loss_class_batch.item():.4f}; box_loss: {loss_bbox_batch.item():.4f}; giou_loss: {loss_giou_batch.item():.4f}")
+    print(f"Total loss: {loss.item():.4f}; cls_loss: {loss_class_batch.item():.4f}; box_loss: {loss_bbox_batch.item():.4f}; giou_loss: {loss_giou_batch.item():.4f}")
