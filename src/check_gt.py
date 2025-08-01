@@ -1,0 +1,36 @@
+import torch
+import cv2
+import numpy as np
+from dataset.ds import ArmaDS
+from torchvision.transforms.functional import to_pil_image
+
+def draw_yolo_boxes(image_tensor, boxes, frame_num, labels=None):
+  image = image_tensor.permute(1, 2, 0).numpy()
+  print(image_tensor.shape)
+  image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+  h, w, _ = image.shape
+
+  for i, box in enumerate(boxes):
+    cx, cy, bw, bh = box.tolist()
+    x1 = int((cx - bw / 2) * w)
+    y1 = int((cy - bh / 2) * h)
+    x2 = int((cx + bw / 2) * w)
+    y2 = int((cy + bh / 2) * h)
+
+    cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
+    if labels is not None:
+      label = int(labels[i].item())
+      cv2.putText(image, str(label), (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+
+  cv2.imshow(f"Frame {frame_num}", image)
+  cv2.waitKey(0)
+  cv2.destroyAllWindows()
+
+if __name__ == "__main__":
+  ds = ArmaDS(root="data/arma")
+
+  for i in range(len(ds)):
+    img, target = ds[i]
+    boxes = target["boxes"]
+    labels = target.get("labels", None)
+    draw_yolo_boxes(img, boxes, i, labels)

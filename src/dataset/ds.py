@@ -1,11 +1,11 @@
 import os
 import torch
-import numpy as np
 import cv2
+import numpy as np
 from torch.utils.data import Dataset
-from PIL import Image
-import albumentations as A
-from albumentations.pytorch import ToTensorV2
+
+from dataset.transforms import get_transforms
+from dataset.utils import remove_duplicate_bboxes
 
 class ArmaDS(Dataset):
   def __init__(self, root, image_size=(640, 480), augment=True):
@@ -13,49 +13,25 @@ class ArmaDS(Dataset):
     self.root = root
     self.image_dir = os.path.join(root, 'images')
     self.label_dir = os.path.join(root, 'labels')
+
+    assert os.path.exists(self.image_dir)
+    assert os.path.exists(self.label_dir)
+
     self.image_size = image_size
+    self.w, self.h = image_size
+
     self.augment = augment
+    self.duplicate_boxes_iou_threshold = 0.7
+
     self.image_paths = sorted([
       os.path.join(self.image_dir, fname)
       for fname in os.listdir(self.image_dir)
       if fname.endswith(('.jpg', '.png'))
     ])
-    self.h, self.w = image_size
-    self.aug = A.Compose([
-      A.OneOf([
-        A.RandomResizedCrop(size=(self.h, self.w), scale=(0.8, 1.0), ratio=(0.75, 1.33)),
-        A.Resize(height=self.h, width=self.w)
-      ], p=1.0),
 
-      A.OneOf([
-        A.HorizontalFlip(p=0.5),
-        A.VerticalFlip(p=0.1),
-        A.RandomRotate90(p=0.5),
-        A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.1, rotate_limit=10, p=0.5, border_mode=0)
-      ], p=0.8),
-
-      A.OneOf([
-        A.RandomBrightnessContrast(p=0.5),
-        A.HueSaturationValue(p=0.5),
-        A.RGBShift(p=0.5),
-        A.ColorJitter(p=0.5)
-      ], p=0.7),
-
-      A.OneOf([
-        A.MotionBlur(p=0.2),
-        A.MedianBlur(blur_limit=3, p=0.1),
-        A.GaussianBlur(blur_limit=3, p=0.1),
-        A.GaussNoise(var_limit=(10.0, 50.0), p=0.2),
-      ], p=0.3),
-
-      A.Normalize(mean=(0.485, 0.456, 0.406),
-                  std=(0.229, 0.224, 0.225)),
-
-      ToTensorV2()
-    ],
-    bbox_params=A.BboxParams(format="yolo",
-                            label_fields=["class_labels"],
-                            filter_invalid_bboxes=True))
+    self.aug = get_transforms(image_height=self.h,
+                              image_width=self.w,
+                              bbox_format="yolo")
 
   def __len__(self):
     return len(self.image_paths)
@@ -78,18 +54,24 @@ class ArmaDS(Dataset):
       labels = np.array(gt)
       if not ((labels[:, 1:] >= 0).all() and (labels[:, 1:] <= 1).all()):
         raise ValueError(f'Invalid bbox values in {label_path}')
-      bboxes = labels[:, 1:]
+      bboxes = labels[:, 1:].tolist()
       class_labels = labels[:, 0].astype(np.int32).tolist()
-      # class_labels = [cls_label + 1 for cls_label in class_labels]
+      bboxes, class_labels = remove_duplicate_bboxes(bboxes=bboxes,
+                                                     class_labels=class_labels,
+                                                     iou_threshold=self.duplicate_boxes_iou_threshold)
     else:
       bboxes = []
       class_labels = []
     
     if self.augment:
       transformed = self.aug(image=image, bboxes=bboxes, class_labels=class_labels)
-      image = transformed['image']
+      image = transformed['image'].to(torch.float32)
       bboxes = transformed['bboxes']
       class_labels = transformed['class_labels']
+      if len(bboxes) > 1:
+        bboxes, class_labels = remove_duplicate_bboxes(bboxes=bboxes,
+                                                       class_labels=class_labels,
+                                                       iou_threshold=self.duplicate_boxes_iou_threshold)
     
     target = {
       'labels': torch.tensor(class_labels, dtype=torch.long),
@@ -99,7 +81,7 @@ class ArmaDS(Dataset):
       'size': torch.tensor([self.w, self.h], dtype=torch.long)
     }
 
-    return image.to(torch.float32), target
+    return image, target
 
 def collate_fn(batch):
   images = torch.stack([item[0] for item in batch])

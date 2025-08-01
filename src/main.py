@@ -5,7 +5,7 @@ from models.dino.dino import build_dino
 from engine import test_single_image
 from tqdm import tqdm
 
-import DINO_5scale as args
+import DINO_4scale as args
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 BATCH_SIZE = 1
@@ -13,6 +13,7 @@ n_epochs = 30
 
 if __name__ == "__main__":
   model, criterion, postprocessors = build_dino(args)
+  model.load_state_dict(torch.load("pth/dino_arma_model_1.pth"))
   model = model.to(device).train()
   criterion.train()
 
@@ -34,19 +35,15 @@ if __name__ == "__main__":
       weight_dict = criterion.weight_dict
       losses = sum(loss_dict[k] * weight_dict[k] for k in loss_dict.keys() if k in weight_dict)
       total_loss += losses.item()
-
+      
       losses.backward()
-      # grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 0.1)
-      # if not torch.isfinite(grad_norm):
-      #   print("Grad norm:", grad_norm)
-      #   continue
+      grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 0.1)
       optimizer.step()
 
     total_loss /= len(train_ds)
     print(f"Epoch {epoch}: Total Loss = {total_loss:.4f}")
 
-  torch.save(model.state_dict(), "dino_arma_model_1.pth")
-  print("Model saved to dino_arma_model.pth")
+  torch.save(model.state_dict(), "pth/dino_swinL2.pth")
 
   # test_single_image(model, postprocessors, "data/arma/images/frame_0.jpg", device)
   test_single_image(model, postprocessors, "data/drone_pic.jpg", device)
