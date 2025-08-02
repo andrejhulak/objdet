@@ -36,7 +36,7 @@ def test_single_image(model, postprocessors, path, device):
     labels = result['labels'].tolist()
     boxes = result['boxes'].tolist()
     for s, l, b in zip(scores, labels, boxes):
-      if s > 0.22:
+      if s > 0.2:
         itemdict = {
           "image_id": int(image_id),
           "category_id": l,

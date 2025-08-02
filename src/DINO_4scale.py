@@ -57,8 +57,8 @@ use_deformable_box_attn = False
 box_attn_type = 'roi_align'
 dec_layer_number = None
 num_feature_levels = 4
-enc_n_points = 4
-dec_n_points = 4
+enc_n_points = 8
+dec_n_points = 8
 decoder_layer_noise = False
 dln_xy_noise = 0.2
 dln_hw_noise = 0.2
@@ -74,7 +74,7 @@ two_stage_default_hw = 0.05
 two_stage_keep_all_tokens = False
 num_select = 100
 transformer_activation = 'relu'
-batch_norm_type = 'FrozenBatchNorm2d'
+batch_norm_type = 'BatchNorm2d'
 masks = False
 aux_loss = True
 set_cost_class = 2.0
@@ -101,10 +101,10 @@ dec_pred_class_embed_share = True
 # for dn
 use_dn = True
 dn_number = 100
-dn_box_noise_scale = 0.4
+dn_box_noise_scale = 0.2
 dn_label_noise_ratio = 0.5
 embed_init_tgt = True
-dn_labelbook_size = 91
+dn_labelbook_size = 1
 
 match_unstable_error = True
 

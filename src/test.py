@@ -13,10 +13,10 @@ if __name__ == "__main__":
   model, criterion, postprocessors = build_dino(args)
   model = model.to(device).train()
   # model.load_state_dict(torch.load("pth/dino_arma_model_1.pth"))
-  model.load_state_dict(torch.load("pth/dino_swinL2.pth"))
+  model.load_state_dict(torch.load("pth/dino_swinL_mod.pth"))
 
   train_ds = ArmaDS(root="data/arma")
   train_dl = DataLoader(dataset=train_ds, batch_size=BATCH_SIZE, shuffle=True, collate_fn=collate_fn)
 
-  # test_single_image(model, postprocessors, "data/arma/images/frame_1.jpg", device)
+  # test_single_image(model, postprocessors, "data/arma/images/frame_15.jpg", device)
   test_single_image(model, postprocessors, "data/drone_pic_2.jpg", device)

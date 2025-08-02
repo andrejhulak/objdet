@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from torch.utils.data import Dataset
 
-from dataset.transforms import get_transforms
+from dataset.transforms import Transforms
 from dataset.utils import remove_duplicate_bboxes
 
 class ArmaDS(Dataset):
@@ -29,9 +29,9 @@ class ArmaDS(Dataset):
       if fname.endswith(('.jpg', '.png'))
     ])
 
-    self.aug = get_transforms(image_height=self.h,
-                              image_width=self.w,
-                              bbox_format="yolo")
+    self.transforms = Transforms(image_size=(self.h, self.w),
+                                 bbox_format="yolo")
+    self.aug = self.transforms.basic_transforms
 
   def __len__(self):
     return len(self.image_paths)
@@ -84,6 +84,6 @@ class ArmaDS(Dataset):
     return image, target
 
 def collate_fn(batch):
-  images = torch.stack([item[0] for item in batch])
-  targets = [item[1] for item in batch]
+  images = torch.stack([x[0] for x in batch])
+  targets = [x[1] for x in batch]
   return images, targets
