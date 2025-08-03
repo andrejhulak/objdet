@@ -19,4 +19,4 @@ if __name__ == "__main__":
   train_dl = DataLoader(dataset=train_ds, batch_size=BATCH_SIZE, shuffle=True, collate_fn=collate_fn)
 
   # test_single_image(model, postprocessors, "data/arma/images/frame_15.jpg", device)
-  test_single_image(model, postprocessors, "data/drone_pic_2.jpg", device)
+  test_single_image(model, postprocessors, "data/drone_pic.jpg", device)

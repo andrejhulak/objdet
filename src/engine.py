@@ -47,7 +47,7 @@ def test_single_image(model, postprocessors, path, device):
 
   print(f"Found {len(final_res)} predictions")
 
-  top_preds = sorted(final_res, key=lambda x: x['score'], reverse=True)[:10]
+  top_preds = sorted(final_res, key=lambda x: x['score'], reverse=True)[:25]
   for i, pred in enumerate(top_preds):
     print(f"Pred {i+1}: score={pred['score']:.3f}, class={pred['category_id']}, bbox={pred['bbox']}")
 
