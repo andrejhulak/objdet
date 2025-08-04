@@ -93,7 +93,7 @@ focal_alpha = 0.25
 decoder_sa_type = 'sa' # ['sa', 'ca_label', 'ca_content']
 matcher_type = 'HungarianMatcher' # or SimpleMinsumMatcher
 decoder_module_seq = ['sa', 'ca', 'ffn']
-nms_iou_threshold = 0.5
+nms_iou_threshold = -1
 
 dec_pred_bbox_embed_share = True
 dec_pred_class_embed_share = True
