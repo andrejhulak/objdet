@@ -20,7 +20,7 @@ class ArmaDS(Dataset):
     self.h, self.w = image_size
 
     self.augment = augment
-    self.duplicate_boxes_iou_threshold = 0.7
+    self.duplicate_boxes_iou_threshold = 0.5
 
     self.image_paths = sorted([
       os.path.join(self.image_dir, fname)

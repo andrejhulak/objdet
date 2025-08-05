@@ -23,18 +23,18 @@ class MosaicDataset(Dataset):
     
     c, h, w = primary_example[0].shape
 
-    primary_image = primary_example[0].reshape(h, w, c).numpy()
+    primary_image = primary_example[0].permute(1, 2, 0).numpy()
     primary_bboxes = primary_example[1]["boxes"].numpy()
     primary_labels = primary_example[1]["labels"].tolist()
 
     #TODO make this better
     other_example_list = []
-    while len(other_example_list) <= 3:
+    while len(other_example_list) <= 4:
       random_idx = np.random.randint(low=0, high=len(self.dataset))
       if idx != random_idx:
-        other_example_image = self.dataset[random_idx][0].reshape(h, w, c).numpy() # get the image of the random example
-        other_example_bboxes = self.dataset[random_idx][1]["boxes"].numpy() # get the bboxes of the random example
-        other_example_labels = self.dataset[random_idx][1]["labels"].tolist() # get the labels of the random example
+        other_example_image = self.dataset[random_idx][0].permute(1, 2, 0).numpy()
+        other_example_bboxes = self.dataset[random_idx][1]["boxes"].numpy()
+        other_example_labels = self.dataset[random_idx][1]["labels"].tolist()
         other_example = {
           "image": other_example_image,
           "bboxes": other_example_bboxes,

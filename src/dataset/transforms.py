@@ -21,17 +21,17 @@ class Transforms():
   def create_basic_transforms(self):
     aug = A.Compose([
       A.OneOf([
-        A.HorizontalFlip(p=0.5),
+        # A.HorizontalFlip(p=0.5),
         # A.RandomResizedCrop(size=(self.image_height, self.image_width), scale=(0.8, 1.0), ratio=(0.75, 1.33)),
-        A.VerticalFlip(p=0.1),
-        A.RandomRotate90(p=0.5),
+        # A.VerticalFlip(p=0.1),
+        # A.RandomRotate90(p=0.5),
         # A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.1, rotate_limit=10, p=0.5, border_mode=0)
       ], p=0.8),
       A.OneOf([
-        A.GridDistortion()
+        # A.GridDistortion()
       ], p=0.5),
       A.OneOf([
-        A.PixelDropout(dropout_prob=random.rand() / 9.0)
+        A.PixelDropout(dropout_prob=random.rand() / 10.0)
       ], p=1),
       A.OneOf([
         A.RandomBrightnessContrast(p=0.5),
@@ -61,7 +61,6 @@ class Transforms():
       [
         A.Mosaic(
           grid_yx=grid_yx,
-          cell_shape=(512, 512), # fine for now
           fit_mode="cover",
           target_size=target_size,
           metadata_key="mosaic_metadata",

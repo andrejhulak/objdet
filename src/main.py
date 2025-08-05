@@ -4,23 +4,25 @@ from torch.utils.data.dataloader import DataLoader
 from models.dino.dino import build_dino
 from engine import test_single_image
 from tqdm import tqdm
+from dataset.mosaic_ds import MosaicDataset
 
 import DINO_4scale as args
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-BATCH_SIZE = 2
-n_epochs = 40
+BATCH_SIZE = 1
+n_epochs = 20
 
 if __name__ == "__main__":
   model, criterion, postprocessors = build_dino(args)
-  # model.load_state_dict(torch.load("pth/dino_arma_model_1.pth"))
+  # model.load_state_dict(torch.load("pth/dino_swinL_mod_mosaic_2.pth"))
   model = model.to(device).train()
   criterion.train()
 
   train_ds = ArmaDS(root="data/arma")
-  train_dl = DataLoader(dataset=train_ds, batch_size=BATCH_SIZE, shuffle=True, collate_fn=collate_fn)
+  mosaic_ds = MosaicDataset(dataset=train_ds)
+  train_dl = DataLoader(dataset=mosaic_ds, batch_size=BATCH_SIZE, shuffle=True, collate_fn=collate_fn)
 
-  optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5, weight_decay=1e-4)
+  optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-4)
 
   print("Starting training...")
   for epoch in range(n_epochs):
@@ -43,7 +45,7 @@ if __name__ == "__main__":
     total_loss /= len(train_ds)
     print(f"Epoch {epoch}: Total Loss = {total_loss:.4f}")
 
-  torch.save(model.state_dict(), "pth/dino_swinL_mod.pth")
+  torch.save(model.state_dict(), "pth/dino_swinL_mod_new.pth")
 
   # test_single_image(model, postprocessors, "data/arma/images/frame_0.jpg", device)
   test_single_image(model, postprocessors, "data/drone_pic.jpg", device)
