@@ -1,6 +1,7 @@
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from typing import Literal, Tuple
+from numpy import random
 
 class Transforms():
   def __init__(self,
@@ -13,24 +14,25 @@ class Transforms():
     self.image_width = image_size[1]
     self.bbox_format = bbox_format
 
-    self.mosaic = self.get_mosaic_transform(grid_yx=(2, 2))
     self.basic_transforms = self.create_basic_transforms()
+
+    self.mosaic = self.get_mosaic_transform(grid_yx=(2, 2))
 
   def create_basic_transforms(self):
     aug = A.Compose([
       A.OneOf([
         A.HorizontalFlip(p=0.5),
-        A.RandomResizedCrop(size=(self.image_height, self.image_width), scale=(0.8, 1.0), ratio=(0.75, 1.33)),
+        # A.RandomResizedCrop(size=(self.image_height, self.image_width), scale=(0.8, 1.0), ratio=(0.75, 1.33)),
         A.VerticalFlip(p=0.1),
         A.RandomRotate90(p=0.5),
-        A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.1, rotate_limit=10, p=0.5, border_mode=0)
+        # A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.1, rotate_limit=10, p=0.5, border_mode=0)
       ], p=0.8),
       A.OneOf([
         A.GridDistortion()
       ], p=0.5),
       A.OneOf([
-        A.PixelDropout(dropout_prob=0.05)
-      ], p=0.7),
+        A.PixelDropout(dropout_prob=random.rand() / 9.0)
+      ], p=1),
       A.OneOf([
         A.RandomBrightnessContrast(p=0.5),
         A.HueSaturationValue(p=0.5),
@@ -59,14 +61,17 @@ class Transforms():
       [
         A.Mosaic(
           grid_yx=grid_yx,
-          cell_shape=(512, 512),
-          fit_mode="contain",
+          cell_shape=(512, 512), # fine for now
+          fit_mode="cover",
           target_size=target_size,
           metadata_key="mosaic_metadata",
           p=1,
         ),
+        ToTensorV2()
       ],
-      bbox_params=A.BboxParams(format=format, label_fields=["class_labels"]),
+      bbox_params=A.BboxParams(format="yolo",
+                               label_fields=["class_labels"],
+                               filter_invalid_bboxes=True),
       p=1,
     )
     return mosaic

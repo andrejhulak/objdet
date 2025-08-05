@@ -1,5 +1,5 @@
 import torch
-from dataset.ds import ArmaDS, collate_fn
+from dataset.base_ds import ArmaDS, collate_fn
 from torch.utils.data.dataloader import DataLoader
 from models.dino.dino import build_dino
 from engine import test_single_image
@@ -8,7 +8,7 @@ from tqdm import tqdm
 import DINO_4scale as args
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-BATCH_SIZE = 1
+BATCH_SIZE = 2
 n_epochs = 40
 
 if __name__ == "__main__":

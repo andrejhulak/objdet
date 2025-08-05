@@ -1,5 +1,5 @@
 import torch
-from dataset.ds import ArmaDS, collate_fn
+from dataset.base_ds import ArmaDS, collate_fn
 from torch.utils.data.dataloader import DataLoader
 from models.dino.dino import build_dino
 from engine import test_single_image

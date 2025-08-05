@@ -1,8 +1,9 @@
 import torch
 import cv2
 import numpy as np
-from dataset.ds import ArmaDS
+from dataset.base_ds import ArmaDS
 from torchvision.transforms.functional import to_pil_image
+from dataset.mosaic_ds import MosaicDataset
 
 def draw_yolo_boxes(image_tensor, boxes, frame_num, labels=None):
   mean = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
@@ -37,9 +38,11 @@ def draw_yolo_boxes(image_tensor, boxes, frame_num, labels=None):
 
 if __name__ == "__main__":
   ds = ArmaDS(root="data/arma")
+  ds_mosaic = MosaicDataset(dataset=ds)
 
-  for i in range(len(ds)):
-    img, target = ds[i]
+  for i in range(len(ds_mosaic)):
+    img, target = ds_mosaic[i]
+    # img, target = ds[i]
     boxes = target["boxes"]
     labels = target.get("labels", None)
     draw_yolo_boxes(img, boxes, i, labels)

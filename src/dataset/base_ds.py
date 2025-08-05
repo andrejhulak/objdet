@@ -8,7 +8,7 @@ from dataset.transforms import Transforms
 from dataset.utils import remove_duplicate_bboxes
 
 class ArmaDS(Dataset):
-  def __init__(self, root, image_size=(640, 480), augment=True):
+  def __init__(self, root, image_size=(480, 640), augment=True):
     super().__init__()
     self.root = root
     self.image_dir = os.path.join(root, 'images')
@@ -17,8 +17,7 @@ class ArmaDS(Dataset):
     assert os.path.exists(self.image_dir)
     assert os.path.exists(self.label_dir)
 
-    self.image_size = image_size
-    self.w, self.h = image_size
+    self.h, self.w = image_size
 
     self.augment = augment
     self.duplicate_boxes_iou_threshold = 0.7
@@ -32,6 +31,7 @@ class ArmaDS(Dataset):
     self.transforms = Transforms(image_size=(self.h, self.w),
                                  bbox_format="yolo")
     self.aug = self.transforms.basic_transforms
+    self.mosaic = self.transforms.mosaic
 
   def __len__(self):
     return len(self.image_paths)
@@ -44,7 +44,7 @@ class ArmaDS(Dataset):
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     
     if os.path.exists(label_path):
-      with open(label_path, 'r') as f:
+      with open(label_path, "r") as f:
         lines = f.readlines()
       gt = [list(map(float, line.strip().split())) for line in lines]
     else:
@@ -64,21 +64,22 @@ class ArmaDS(Dataset):
       class_labels = []
     
     if self.augment:
-      transformed = self.aug(image=image, bboxes=bboxes, class_labels=class_labels)
-      image = transformed['image'].to(torch.float32)
-      bboxes = transformed['bboxes']
-      class_labels = transformed['class_labels']
-      if len(bboxes) > 1:
-        bboxes, class_labels = remove_duplicate_bboxes(bboxes=bboxes,
-                                                       class_labels=class_labels,
-                                                       iou_threshold=self.duplicate_boxes_iou_threshold)
+      transformed = self.aug(image=image,
+                             bboxes=bboxes,
+                             class_labels=class_labels)
+      image = transformed["image"].to(torch.float32)
+      bboxes = transformed["bboxes"]
+      class_labels = transformed["class_labels"]
+      bboxes, class_labels = remove_duplicate_bboxes(bboxes=bboxes,
+                                                     class_labels=class_labels,
+                                                     iou_threshold=self.duplicate_boxes_iou_threshold)
     
     target = {
-      'labels': torch.tensor(class_labels, dtype=torch.long),
-      'boxes': torch.tensor(bboxes, dtype=torch.float32) if len(bboxes) > 0 else torch.zeros((0, 4), dtype=torch.float32),
-      'image_id': torch.tensor(idx, dtype=torch.long),
-      'orig_size': torch.tensor([self.w, self.h], dtype=torch.long),
-      'size': torch.tensor([self.w, self.h], dtype=torch.long)
+      "labels": torch.tensor(class_labels, dtype=torch.long),
+      "boxes": torch.tensor(bboxes, dtype=torch.float32) if len(bboxes) > 0 else torch.zeros((0, 4), dtype=torch.float32),
+      "image_id": torch.tensor(idx, dtype=torch.long),
+      "orig_size": torch.tensor([self.w, self.h], dtype=torch.long),
+      "size": torch.tensor([self.w, self.h], dtype=torch.long)
     }
 
     return image, target
