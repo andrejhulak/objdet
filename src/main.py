@@ -14,7 +14,7 @@ n_epochs = 20
 
 if __name__ == "__main__":
   model, criterion, postprocessors = build_dino(args)
-  model.load_state_dict(torch.load("pth/ddinov3.pth"))
+  # model.load_state_dict(torch.load("pth/ddinov3.pth"))
   model = model.to(device).train()
   criterion.train()
 
