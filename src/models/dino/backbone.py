@@ -148,7 +148,7 @@ class DINOv3Backbone(nn.Module):
         super().__init__()
         
         # self.backbone = torch.hub.load("C:/Users/andre/Desktop/code/dinov3", "dinov3_vitl16", source='local', weights="pth/dinov3_vitl16_pretrain_lvd1689m-8aa4cbdd.pth")
-        self.backbone = torch.hub.load("C:/Users/andre/Desktop/code/dinov3", "dinov3_vitl16", source='local', weights="pth/dinov3_vitl16_pretrain_sat493m-eadcf0ff.pth")
+        self.backbone = torch.hub.load("dinov3", "dinov3_vitl16", source='local', weights="pth/dinov3_vitl16_pretrain_sat493m-eadcf0ff.pth")
         # self.backbone = torch.hub.load("C:/Users/andre/Desktop/code/dinov3", "dinov3_vitb16", source='local', weights="pth/dinov3_vitb16_pretrain_lvd1689m-73cec8be.pth")
             
         self.return_interm_indices = return_interm_indices
