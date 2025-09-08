@@ -50,7 +50,6 @@ pytz==2025.2
 PyYAML==6.0.2
 requests==2.32.4
 safetensors==0.5.3
-science_rcn==1.0.1
 scikit-learn==1.7.0
 scipy==1.16.0
 setuptools==70.2.0
