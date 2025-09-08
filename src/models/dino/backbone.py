@@ -143,6 +143,85 @@ class Joiner(nn.Sequential):
 
         return out, pos
 
+class DINOv3Backbone(nn.Module):
+    def __init__(self, model_name='dinov3_vitl16', return_interm_indices=[5, 11, 17, 23]):
+        super().__init__()
+        
+        # self.backbone = torch.hub.load("C:/Users/andre/Desktop/code/dinov3", "dinov3_vitl16", source='local', weights="pth/dinov3_vitl16_pretrain_lvd1689m-8aa4cbdd.pth")
+        self.backbone = torch.hub.load("C:/Users/andre/Desktop/code/dinov3", "dinov3_vitl16", source='local', weights="pth/dinov3_vitl16_pretrain_sat493m-eadcf0ff.pth")
+        # self.backbone = torch.hub.load("C:/Users/andre/Desktop/code/dinov3", "dinov3_vitb16", source='local', weights="pth/dinov3_vitb16_pretrain_lvd1689m-73cec8be.pth")
+            
+        self.return_interm_indices = return_interm_indices
+        
+        self.patch_size = self.backbone.patch_size
+        self.embed_dim = self.backbone.embed_dim
+        
+        self.feature_dims = [1024] * len(return_interm_indices)
+        # self.feature_dims = [768] * len(return_interm_indices)
+        self.num_channels = self.feature_dims
+        
+    def forward(self, tensor_list: NestedTensor):
+        x = tensor_list.tensors
+        B, C, H, W = x.shape
+        
+        features = self.backbone.get_intermediate_layers(
+            x, 
+            n=self.return_interm_indices,
+            reshape=True,
+            return_class_token=False,
+            norm=True
+        )
+        
+        out = {}
+        for idx, (layer_idx, feat) in enumerate(zip(self.return_interm_indices, features)):
+            m = tensor_list.mask
+            assert m is not None
+            mask = F.interpolate(m[None].float(), size=feat.shape[-2:]).to(torch.bool)[0]
+            out[str(idx)] = NestedTensor(feat, mask)
+            
+        return out
+
+class DINOv3ProjectionBackbone(nn.Module):
+    def __init__(self, return_interm_indices):
+        super().__init__()
+        self.backbone = DINOv3Backbone(return_interm_indices=return_interm_indices)
+        self.num_channels = [1024 for i in range(len(return_interm_indices))]
+    
+    def forward(self, tensor_list):
+        features = self.backbone(tensor_list)
+        return features
+
+# class DINOv3ProjectionBackbone(nn.Module):
+#     def __init__(self, return_interm_indices):
+#         super().__init__()
+#         self.backbone = DINOv3Backbone(return_interm_indices=return_interm_indices)
+        
+#         self.projectors = nn.ModuleList([
+#             nn.Sequential(
+#                 nn.Conv2d(1024, 256, 1),
+#                 nn.GroupNorm(32, 256)
+#             )
+#             for _ in range(len(return_interm_indices))
+#         ])
+        
+#         self.num_channels = [256 for i in range(len(return_interm_indices))]
+    
+#     def forward(self, tensor_list):
+#         features = self.backbone(tensor_list)
+        
+#         out = {}
+#         for idx, (key, feat) in enumerate(features.items()):
+#             projected = self.projectors[idx](feat.tensors)
+#             out[key] = NestedTensor(projected, feat.mask)
+            
+#         return out
+
+
+def build_dinov3_backbone(return_interm_indices, **kwargs):
+    backbone = DINOv3ProjectionBackbone(
+        return_interm_indices=return_interm_indices
+    )
+    return backbone
 
 def build_backbone(args):
     """
@@ -160,7 +239,7 @@ def build_backbone(args):
     if not train_backbone:
         raise ValueError("Please set lr_backbone > 0")
     return_interm_indices = args.return_interm_indices
-    assert return_interm_indices in [[0,1,2,3], [1,2,3], [3]]
+    # assert return_interm_indices in [[0,1,2,3], [1,2,3], [3]]
     backbone_freeze_keywords = args.backbone_freeze_keywords
     use_checkpoint = getattr(args, 'use_checkpoint', False)
 
@@ -206,6 +285,9 @@ def build_backbone(args):
     elif args.backbone in ['convnext_xlarge_22k']:
         backbone = build_convnext(modelname=args.backbone, pretrained=True, out_indices=tuple(return_interm_indices),backbone_dir=args.backbone_dir)
         bb_num_channels = backbone.dims[4 - len(return_interm_indices):]
+    elif args.backbone in ['dinov3']:
+        backbone = build_dinov3_backbone(return_interm_indices=return_interm_indices)
+        bb_num_channels = backbone.num_channels
     else:
         raise NotImplementedError("Unknown backbone {}".format(args.backbone))
     

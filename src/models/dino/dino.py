@@ -93,8 +93,12 @@ class DINO(nn.Module):
         self.dn_label_noise_ratio = dn_label_noise_ratio
         self.dn_labelbook_size = dn_labelbook_size
 
+        dino_backbone = True
+
         # prepare input projection layers
-        if num_feature_levels > 1:
+        if dino_backbone:
+            self.input_proj = nn.ModuleList([nn.Identity() for _ in range(num_feature_levels)])
+        elif num_feature_levels > 1:
             num_backbone_outs = len(backbone.num_channels)
             input_proj_list = []
             for _ in range(num_backbone_outs):
@@ -183,7 +187,10 @@ class DINO(nn.Module):
                 layer.label_embedding = None
             self.label_embedding = None
 
-        self._reset_parameters()
+        if dino_backbone:
+            pass
+        else:
+            self._reset_parameters()
 
     def _reset_parameters(self):
         # init input_proj

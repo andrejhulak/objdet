@@ -21,17 +21,17 @@ class Transforms():
   def create_basic_transforms(self):
     aug = A.Compose([
       A.OneOf([
-        # A.HorizontalFlip(p=0.5),
-        # A.RandomResizedCrop(size=(self.image_height, self.image_width), scale=(0.8, 1.0), ratio=(0.75, 1.33)),
-        # A.VerticalFlip(p=0.1),
-        # A.RandomRotate90(p=0.5),
-        # A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.1, rotate_limit=10, p=0.5, border_mode=0)
+        A.HorizontalFlip(p=0.5),
+        A.RandomResizedCrop(size=(self.image_height, self.image_width), scale=(0.8, 1.0), ratio=(0.75, 1.33)),
+        A.VerticalFlip(p=0.1),
+        A.RandomRotate90(p=0.5),
+        A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.1, rotate_limit=10, p=0.5, border_mode=0)
       ], p=0.8),
       A.OneOf([
-        # A.GridDistortion()
+        A.GridDistortion()
       ], p=0.5),
       A.OneOf([
-        A.PixelDropout(dropout_prob=random.rand() / 10.0)
+        A.PixelDropout(dropout_prob=0.02)
       ], p=1),
       A.OneOf([
         A.RandomBrightnessContrast(p=0.5),
@@ -46,8 +46,10 @@ class Transforms():
         A.GaussNoise(p=0.2),
       ], p=0.3),
       A.Resize(height=self.image_height, width=self.image_width),
-      A.Normalize(mean=(0.485, 0.456, 0.406),
-                  std=(0.229, 0.224, 0.225)),
+      # A.Normalize(mean=(0.485, 0.456, 0.406),
+      #             std=(0.229, 0.224, 0.225)),
+      A.Normalize(mean=(0.430, 0.411, 0.296),
+                  std=(0.213, 0.156, 0.143)),
       ToTensorV2()
     ],
     bbox_params=A.BboxParams(format=self.bbox_format,

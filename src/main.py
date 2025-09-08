@@ -14,15 +14,17 @@ n_epochs = 20
 
 if __name__ == "__main__":
   model, criterion, postprocessors = build_dino(args)
-  # model.load_state_dict(torch.load("pth/dino_swinL_mod_mosaic_2.pth"))
+  model.load_state_dict(torch.load("pth/ddinov3.pth"))
   model = model.to(device).train()
   criterion.train()
 
   train_ds = ArmaDS(root="data/arma")
-  mosaic_ds = MosaicDataset(dataset=train_ds)
-  train_dl = DataLoader(dataset=mosaic_ds, batch_size=BATCH_SIZE, shuffle=True, collate_fn=collate_fn)
+  # mosaic_ds = MosaicDataset(dataset=train_ds)
+  train_dl = DataLoader(dataset=train_ds, batch_size=BATCH_SIZE, shuffle=True, collate_fn=collate_fn)
 
-  optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-4)
+  optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5, weight_decay=1e-4)
+
+  scaler = torch.amp.GradScaler()
 
   print("Starting training...")
   for epoch in range(n_epochs):
@@ -32,20 +34,26 @@ if __name__ == "__main__":
       targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
       optimizer.zero_grad()
 
-      outputs = model(input, targets)
-      loss_dict = criterion(outputs, targets)
-      weight_dict = criterion.weight_dict
-      losses = sum(loss_dict[k] * weight_dict[k] for k in loss_dict.keys() if k in weight_dict)
-      total_loss += losses.item()
-      
-      losses.backward()
-      grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 0.1)
-      optimizer.step()
+      with torch.amp.autocast(device_type=device):
+        outputs = model(input, targets)
+        loss_dict = criterion(outputs, targets)
+        weight_dict = criterion.weight_dict
+        losses = sum(loss_dict[k] * weight_dict[k] for k in loss_dict.keys() if k in weight_dict)
+
+        total_loss += losses.item()
+
+      scaler.scale(losses).backward()
+      # losses.backward()
+
+      scaler.step(optimizer)
+      # optimizer.step()
+
+      scaler.update()
 
     total_loss /= len(train_ds)
     print(f"Epoch {epoch}: Total Loss = {total_loss:.4f}")
 
-  torch.save(model.state_dict(), "pth/dino_swinL_mod_new.pth")
+  torch.save(model.state_dict(), "pth/ddinov3_2.pth")
 
   # test_single_image(model, postprocessors, "data/arma/images/frame_0.jpg", device)
   test_single_image(model, postprocessors, "data/drone_pic.jpg", device)

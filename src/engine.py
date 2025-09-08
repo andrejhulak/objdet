@@ -4,7 +4,8 @@ import numpy as np
 import albumentations as A
 
 classes = {
-  0: "soldier"
+  0: "soldier",
+  1: "vehicle"
 }
 
 @torch.no_grad()
@@ -13,7 +14,8 @@ def test_single_image(model, postprocessors, path, device):
 
   transform = A.Compose([
     A.Resize(height=480, width=640),
-    A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+    # A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+    A.Normalize(mean=(0.430, 0.411, 0.296), std=(0.213, 0.156, 0.143)),
     A.ToTensorV2()
   ], bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"], filter_invalid_bboxes=True))
 
@@ -35,7 +37,7 @@ def test_single_image(model, postprocessors, path, device):
     labels = result['labels'].tolist()
     boxes = result['boxes'].tolist()
     for s, l, b in zip(scores, labels, boxes):
-      if s > 0.1:
+      if s > 0.2:
         itemdict = {
           "image_id": int(image_id),
           "category_id": l,
@@ -50,8 +52,10 @@ def test_single_image(model, postprocessors, path, device):
   for i, pred in enumerate(top_preds):
     print(f"Pred {i+1}: score={pred['score']:.3f}, class={pred['category_id']}, bbox={pred['bbox']}")
 
-  mean = torch.tensor([0.485, 0.456, 0.406], device="cpu").view(3, 1, 1)
-  std = torch.tensor([0.229, 0.224, 0.225], device="cpu").view(3, 1, 1)
+  # mean = torch.tensor([0.485, 0.456, 0.406], device="cpu").view(3, 1, 1)
+  # std = torch.tensor([0.229, 0.224, 0.225], device="cpu").view(3, 1, 1)
+  mean = torch.tensor([0.430, 0.411, 0.296], device="cpu").view(3, 1, 1)
+  std = torch.tensor([0.213, 0.156, 0.143], device="cpu").view(3, 1, 1)
   img = input[0].cpu() * std + mean
   img = img.permute(1, 2, 0).clamp(0, 1).numpy()
   img_cv = (img * 255).astype(np.uint8)
@@ -72,7 +76,8 @@ def test_video(model, postprocessors, video_path, device, output_path=None):
   model.eval()
   transform = A.Compose([
     A.Resize(height=480, width=640),
-    A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+    # A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+    A.Normalize(mean=(0.430, 0.411, 0.296), std=(0.213, 0.156, 0.143)),
     A.ToTensorV2()
   ], bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"], filter_invalid_bboxes=True))
   
@@ -95,8 +100,6 @@ def test_video(model, postprocessors, video_path, device, output_path=None):
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
   
   frame_count = 0
-  mean = torch.tensor([0.485, 0.456, 0.406], device="cpu").view(3, 1, 1)
-  std = torch.tensor([0.229, 0.224, 0.225], device="cpu").view(3, 1, 1)
   
   while True:
     ret, frame = cap.read()
@@ -131,8 +134,8 @@ def test_video(model, postprocessors, video_path, device, output_path=None):
     
     top_preds = sorted(final_res, key=lambda x: x['score'], reverse=True)[:10]
     
-    scale_x = width / 640
     scale_y = height / 480
+    scale_x = width / 640
     
     for pred in top_preds:
       x0, y0, x1, y1 = pred['bbox']
