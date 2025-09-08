@@ -31,7 +31,7 @@ class Transforms():
         A.GridDistortion()
       ], p=0.5),
       A.OneOf([
-        A.PixelDropout(dropout_prob=0.02)
+        A.PixelDropout(dropout_prob=0.03)
       ], p=1),
       A.OneOf([
         A.RandomBrightnessContrast(p=0.5),

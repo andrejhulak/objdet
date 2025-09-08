@@ -118,6 +118,6 @@ if __name__ == "__main__":
       postprocessors=postprocessors,
       dataloader=test_dl,
       device=device,
-      score_threshold=0.2,
+      score_threshold=0.15,
       max_detections=100
   )

@@ -124,7 +124,7 @@ def test_video(model, postprocessors, video_path, device, output_path=None):
       labels = result['labels'].tolist()
       boxes = result['boxes'].tolist()
       for s, l, b in zip(scores, labels, boxes):
-        if s > 0.2:
+        if s > 0.15:
           itemdict = {
             "category_id": l,
             "bbox": b,

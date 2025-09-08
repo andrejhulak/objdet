@@ -10,7 +10,7 @@ import DINO_4scale as args
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 BATCH_SIZE = 4
-n_epochs = 40
+n_epochs = 30
 
 if __name__ == "__main__":
   model, criterion, postprocessors = build_dino(args)
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     total_loss /= len(train_ds)
     print(f"Epoch {epoch}: Total Loss = {total_loss:.4f}")
 
-  torch.save(model.state_dict(), "pth/ddinov3.pth")
+  torch.save(model.state_dict(), "pth/ddinov3big.pth")
 
   # test_single_image(model, postprocessors, "data/arma/images/frame_0.jpg", device)
   # test_single_image(model, postprocessors, "data/drone_pic.jpg", device)
