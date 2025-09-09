@@ -9,8 +9,8 @@ from dataset.mosaic_ds import MosaicDataset
 import DINO_4scale as args
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-BATCH_SIZE = 1
-n_epochs = 30
+BATCH_SIZE = 4
+n_epochs = 40
 
 if __name__ == "__main__":
   model, criterion, postprocessors = build_dino(args)
@@ -18,7 +18,7 @@ if __name__ == "__main__":
   model = model.to(device).train()
   criterion.train()
 
-  train_ds = ArmaDS(root="data/arma")
+  train_ds = ArmaDS(root="data/arma", augment=True)
   # mosaic_ds = MosaicDataset(dataset=train_ds)
   train_dl = DataLoader(dataset=train_ds, batch_size=BATCH_SIZE, shuffle=True, collate_fn=collate_fn)
 
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     total_loss /= len(train_ds)
     print(f"Epoch {epoch}: Total Loss = {total_loss:.4f}")
 
-  torch.save(model.state_dict(), "pth/ddinov3big.pth")
+  torch.save(model.state_dict(), "pth/ddinov3verybig.pth")
 
   # test_single_image(model, postprocessors, "data/arma/images/frame_0.jpg", device)
   # test_single_image(model, postprocessors, "data/drone_pic.jpg", device)

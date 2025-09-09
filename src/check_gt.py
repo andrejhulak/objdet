@@ -37,7 +37,7 @@ def draw_yolo_boxes(image_tensor, boxes, frame_num, labels=None):
   cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-  ds = ArmaDS(root="data/test")
+  ds = ArmaDS(root="data/arma")
   # ds_mosaic = MosaicDataset(dataset=ds)
   ds_mosaic = ds
 

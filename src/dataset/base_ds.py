@@ -30,8 +30,8 @@ class ArmaDS(Dataset):
 
     self.transforms = Transforms(image_size=(self.h, self.w),
                                  bbox_format="yolo")
-    self.aug = self.transforms.basic_transforms
-    self.mosaic = self.transforms.mosaic
+    self.basic_aug = self.transforms.basic_transforms
+    self.advanced_aug = self.transforms.advanced_transforms
 
   def __len__(self):
     return len(self.image_paths)
@@ -64,15 +64,22 @@ class ArmaDS(Dataset):
       class_labels = []
     
     if self.augment:
-      transformed = self.aug(image=image,
-                             bboxes=bboxes,
-                             class_labels=class_labels)
-      image = transformed["image"].to(torch.float32)
+      transformed = self.advanced_aug(image=image,
+                                      bboxes=bboxes,
+                                      class_labels=class_labels)
+      image = transformed["image"]
       bboxes = transformed["bboxes"]
       class_labels = transformed["class_labels"]
       bboxes, class_labels = remove_duplicate_bboxes(bboxes=bboxes,
                                                      class_labels=class_labels,
                                                      iou_threshold=self.duplicate_boxes_iou_threshold)
+
+    transformed = self.basic_aug(image=image,
+                                bboxes=bboxes,
+                                class_labels=class_labels)
+    image = transformed["image"].to(torch.float32)
+    bboxes = transformed["bboxes"]
+    class_labels = transformed["class_labels"]
     
     target = {
       "labels": torch.tensor(class_labels, dtype=torch.long),

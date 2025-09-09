@@ -107,10 +107,10 @@ if __name__ == "__main__":
   
   model, criterion, postprocessors = build_dino(args)
   # model.load_state_dict(torch.load("pth/ddinov3_the_best.pth"))
-  model.load_state_dict(torch.load("pth/ddinov3.pth"))
+  model.load_state_dict(torch.load("pth/ddinov3_32enc.pth"))
   model = model.to(device)
   
-  test_ds = ArmaDS(root="data/test")
+  test_ds = ArmaDS(root="data/test", augment=False)
   test_dl = DataLoader(dataset=test_ds, batch_size=BATCH_SIZE, shuffle=False, collate_fn=collate_fn)
   
   map_results = evaluate_model_map(
@@ -118,6 +118,6 @@ if __name__ == "__main__":
       postprocessors=postprocessors,
       dataloader=test_dl,
       device=device,
-      score_threshold=0.15,
+      score_threshold=0.1,
       max_detections=100
   )
