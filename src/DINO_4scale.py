@@ -79,7 +79,7 @@ two_stage_learn_wh = False
 two_stage_default_hw = 0.05
 two_stage_keep_all_tokens = False
 num_select = 100
-transformer_activation = 'relu'
+transformer_activation = 'gelu'
 batch_norm_type = 'FrozenBatchNorm2d'
 masks = False
 aux_loss = True
@@ -99,7 +99,7 @@ focal_alpha = 0.25
 decoder_sa_type = 'sa' # ['sa', 'ca_label', 'ca_content']
 matcher_type = 'HungarianMatcher' # or SimpleMinsumMatcher
 decoder_module_seq = ['sa', 'ca', 'ffn']
-nms_iou_threshold = 0.05
+nms_iou_threshold = -1
 dec_pred_bbox_embed_share = True
 dec_pred_class_embed_share = True
 

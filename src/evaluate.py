@@ -107,7 +107,7 @@ if __name__ == "__main__":
   
   model, criterion, postprocessors = build_dino(args)
   # model.load_state_dict(torch.load("pth/ddinov3_the_best.pth"))
-  model.load_state_dict(torch.load("pth/ddinov3_32enc.pth"))
+  model.load_state_dict(torch.load("pth/ddinov3verybig.pth"))
   model = model.to(device)
   
   test_ds = ArmaDS(root="data/test", augment=False)
