@@ -71,8 +71,8 @@ def merge_datasets(dataset1_path, dataset2_path, output_dataset_path):
   
   print(f"\nMerged dataset saved to: {output_dataset_path}")
 
-DATASET_1_PATH = "data/third ds"
-DATASET_2_PATH = "data/big ds"
+DATASET_1_PATH = "data/new ds"
+DATASET_2_PATH = "data/bigger ds"
 OUTPUT_PATH = "data/arma"
 
 if __name__ == "__main__":
