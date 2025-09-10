@@ -31,8 +31,8 @@ use_checkpoint = False
 
 dilation = False
 position_embedding = 'sine'
-pe_temperatureH = 20
-pe_temperatureW = 20
+pe_temperatureH = 30
+pe_temperatureW = 30
 # return_interm_indices = [1, 2, 3]
 # return_interm_indices = [5, 11, 17, 23]
 return_interm_indices = [2, 5, 8, 11, 14, 17, 21, 23]
@@ -43,8 +43,8 @@ dec_layers = 6
 # dec_layers = 4
 unic_layers = 0
 pre_norm = False
-dim_feedforward = 2048
-# dim_feedforward = 512
+# dim_feedforward = 2048
+dim_feedforward = 512
 hidden_dim = 1024
 dropout = 0.0
 nheads = 8
@@ -79,7 +79,7 @@ two_stage_learn_wh = False
 two_stage_default_hw = 0.05
 two_stage_keep_all_tokens = False
 num_select = 100
-transformer_activation = 'gelu'
+transformer_activation = 'relu'
 batch_norm_type = 'FrozenBatchNorm2d'
 masks = False
 aux_loss = True
@@ -114,7 +114,7 @@ dn_labelbook_size = 1
 match_unstable_error = True
 
 # for ema
-use_ema = False
+use_ema = True
 ema_decay = 0.9997
 ema_epoch = 0
 

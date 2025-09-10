@@ -31,12 +31,12 @@ class Transforms():
       A.OneOf([
         A.GridDistortion(),
         # A.Emboss(),
-      ], p=1),
+      ], p=0.3),
       A.OneOf([
         # A.PlanckianJitter(),
-        # A.ElasticTransform(),
+        A.ElasticTransform(),
         A.RingingOvershoot(),
-      ], p=1),
+      ], p=0.3),
       A.OneOf([
         A.PixelDropout(dropout_prob=0.05),
       ], p=1),
