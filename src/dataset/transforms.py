@@ -30,11 +30,11 @@ class Transforms():
       ], p=0.8),
       A.OneOf([
         A.GridDistortion(),
-        A.Emboss(),
+        # A.Emboss(),
       ], p=1),
       A.OneOf([
-        A.PlanckianJitter(),
-        A.ElasticTransform(),
+        # A.PlanckianJitter(),
+        # A.ElasticTransform(),
         A.RingingOvershoot(),
       ], p=1),
       A.OneOf([
