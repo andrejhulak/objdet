@@ -31,8 +31,8 @@ use_checkpoint = False
 
 dilation = False
 position_embedding = 'sine'
-pe_temperatureH = 30
-pe_temperatureW = 30
+pe_temperatureH = 40
+pe_temperatureW = 40
 # return_interm_indices = [1, 2, 3]
 # return_interm_indices = [5, 11, 17, 23]
 return_interm_indices = [2, 5, 8, 11, 14, 17, 21, 23]

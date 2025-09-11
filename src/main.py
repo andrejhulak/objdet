@@ -53,7 +53,7 @@ if __name__ == "__main__":
     total_loss /= len(train_ds)
     print(f"Epoch {epoch}: Total Loss = {total_loss:.4f}")
 
-  torch.save(model.state_dict(), "pth/ddinov3NEW.pth")
+  torch.save(model.state_dict(), "pth/ddinov3_50temp.pth")
 
   # test_single_image(model, postprocessors, "data/arma/images/frame_0.jpg", device)
   # test_single_image(model, postprocessors, "data/drone_pic.jpg", device)
