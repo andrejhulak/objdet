@@ -9,7 +9,7 @@ from dataset.mosaic_ds import MosaicDataset
 import DINO_4scale as args
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-BATCH_SIZE = 2
+BATCH_SIZE = 4
 n_epochs = 40
 
 if __name__ == "__main__":
