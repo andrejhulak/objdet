@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
   optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5, weight_decay=1e-4)
 
-  # scaler = torch.amp.GradScaler()
+  scaler = torch.amp.GradScaler()
 
   print("Starting training...")
   for epoch in range(n_epochs):
@@ -34,21 +34,21 @@ if __name__ == "__main__":
       targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
       optimizer.zero_grad()
 
-      # with torch.amp.autocast(device_type=device):
-      outputs = model(input, targets)
-      loss_dict = criterion(outputs, targets)
-      weight_dict = criterion.weight_dict
-      losses = sum(loss_dict[k] * weight_dict[k] for k in loss_dict.keys() if k in weight_dict)
+      with torch.amp.autocast(device_type=device):
+        outputs = model(input, targets)
+        loss_dict = criterion(outputs, targets)
+        weight_dict = criterion.weight_dict
+        losses = sum(loss_dict[k] * weight_dict[k] for k in loss_dict.keys() if k in weight_dict)
 
-      total_loss += losses.item()
+        total_loss += losses.item()
 
-      # scaler.scale(losses).backward()
-      losses.backward()
+      scaler.scale(losses).backward()
+      # losses.backward()
 
-      # scaler.step(optimizer)
-      optimizer.step()
+      scaler.step(optimizer)
+      # optimizer.step()
 
-      # scaler.update()
+      scaler.update()
 
     total_loss /= len(train_ds)
     print(f"Epoch {epoch}: Total Loss = {total_loss:.4f}")
