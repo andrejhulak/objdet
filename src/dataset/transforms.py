@@ -23,39 +23,35 @@ class Transforms():
     aug = A.Compose([
       A.OneOf([
         A.HorizontalFlip(p=0.5),
-        A.RandomResizedCrop(size=(self.image_height, self.image_width), scale=(0.8, 1.0), ratio=(0.75, 1.33)),
         A.VerticalFlip(p=0.5),
         A.RandomRotate90(p=0.5),
-        A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.1, rotate_limit=10, p=0.5, border_mode=0)
+        A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.1, rotate_limit=10, p=0.5),
+        A.RandomResizedCrop(size=(self.image_height, self.image_width),
+                            scale=(0.9, 1.0), ratio=(0.9, 1.1)),
       ], p=0.8),
-      A.OneOf([
-        A.GridDistortion(),
-        # A.Emboss(),
-      ], p=0.3),
-      A.OneOf([
-        # A.PlanckianJitter(),
-        A.ElasticTransform(),
-        A.RingingOvershoot(),
-      ], p=0.3),
-      A.OneOf([
-        A.PixelDropout(dropout_prob=0.05),
-      ], p=1),
+
+      A.RingingOvershoot(p=0.3),
+
+      A.PixelDropout(dropout_prob=0.05, p=0.3),
+
       A.OneOf([
         A.RandomBrightnessContrast(p=0.5),
-        A.HueSaturationValue(p=0.5),
-        A.RGBShift(p=0.5),
-        A.ColorJitter(p=0.5)
+        A.ColorJitter(p=0.5),
+        A.HueSaturationValue(p=0.3),
+        A.RGBShift(p=0.3),
       ], p=0.7),
+
       A.OneOf([
         A.MotionBlur(p=0.2),
-        A.MedianBlur(blur_limit=3, p=0.1),
-        A.GaussianBlur(blur_limit=3, p=0.1),
+        A.GaussianBlur(blur_limit=3, p=0.2),
         A.GaussNoise(p=0.2),
-      ], p=0.3)
+      ], p=0.3),
     ],
-    bbox_params=A.BboxParams(format=self.bbox_format,
-                            label_fields=["class_labels"],
-                            filter_invalid_bboxes=True))
+    bbox_params=A.BboxParams(
+      format=self.bbox_format,
+      label_fields=["class_labels"],
+      filter_invalid_bboxes=True))
+
     return aug
 
   def create_basic_transforms(self):

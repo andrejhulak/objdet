@@ -106,8 +106,8 @@ if __name__ == "__main__":
   BATCH_SIZE = 1
   
   model, criterion, postprocessors = build_dino(args)
-  # model.load_state_dict(torch.load("pth/ddinov3_the_best.pth"))
-  model.load_state_dict(torch.load("pth/ddinov3_50temp.pth"))
+  model.load_state_dict(torch.load("pth/ddinov3.pth"))
+  # model.load_state_dict(torch.load("pth/ddinov3_50temp.pth"))
   model = model.to(device)
   
   test_ds = ArmaDS(root="data/test", augment=False)
