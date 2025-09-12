@@ -11,7 +11,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 if __name__ == "__main__":
   model, criterion, postprocessors = build_dino(args)
   model = model.to(device).train()
-  model.load_state_dict(torch.load("pth/ddinov3_50temp.pth"))
+  # model.load_state_dict(torch.load("pth/ddinov3_50temp.pth"))
 
   # test_single_image(model, postprocessors, "data/og ds/images/frame_0.jpg", device)
   # test_single_image(model, postprocessors, "data/drone_pic_3.jpg", device)
